@@ -1,11 +1,10 @@
-import { debug } from "console";
-import {Client, GuildCacheMessage, Intents, Message, User} from "discord.js";
-import { create, all } from 'mathjs'
+import {Client, Intents, Message, User} from "discord.js";
+import {create, all} from 'mathjs'
 
 
 import {token} from "./config.json"
 
-const config = { }
+const config = {}
 const math = create(all, config)
 
 // Create a new client instance
@@ -62,27 +61,10 @@ const countLetters = (word: string) => {
     return letterCounter;
 }
 
-const oldGuessToMosaic = (guess: string, truth: string) => {
-    const truthLetters = countLetters(truth);
-    return [...guess].map((letter, index) => {
-        if (truth.includes(letter)) {
-            if (truth[index] === letter) {
-                truthLetters[letter] -= 1;
-                return green;
-            }
-            if (truthLetters[letter] > 0) {
-                truthLetters[letter] -= 1;
-                return yellow;
-            }
-        }
-        return gray;
-    }).join("");
-}
-
 const guessToMosaic = (guess: string, truth: string) => {
-    
+
     allPossible.forEach((Array) => {
-        if(status.known.get(Array) != green && status.known.get(Array) != yellow && status.known.get(Array) != gray) status.known.set(Array, black)
+        if (status.known.get(Array) != green && status.known.get(Array) != yellow && status.known.get(Array) != gray) status.known.set(Array, black)
     })
     const truthLetters = countLetters(truth);
     let mosaic: string[] = [];
@@ -90,21 +72,21 @@ const guessToMosaic = (guess: string, truth: string) => {
         mosaic[index] = gray;
     });
     [...guess].forEach((letter, index) => {
-        if(truth[index] === letter){
+        if (truth[index] === letter) {
             mosaic[index] = green;
             truthLetters[letter] -= 1;
             status.known.set(letter, green)
-        } 
+        }
     });
     [...guess].forEach((letter, index) => {
-        if(truth.includes(letter) && truthLetters[letter] > 0 && mosaic[index] === gray){
+        if (truth.includes(letter) && truthLetters[letter] > 0 && mosaic[index] === gray) {
             mosaic[index] = yellow;
             truthLetters[letter] -= 1;
-            if(status.known.get(letter) === black) status.known.set(letter, yellow)
+            if (status.known.get(letter) === black) status.known.set(letter, yellow)
         }
     });
     [...guess].forEach((Array) => {
-        if(status.known.get(Array) === black ) status.known.set(Array, gray)
+        if (status.known.get(Array) === black) status.known.set(Array, gray)
     })
     return mosaic.join("")
 }
@@ -124,17 +106,6 @@ const variants = (k: number) => {
     return result;
 }
 
-const oldGenerateTruth = (length: number): string => {
-    if (length === 1) {
-        return sample(numbersNoZero);
-    }
-    if (length === 2) {
-        return sample(numbersNoZero) + sample(numbersAndZero);
-    }
-    const [a, b] = sample(variants(length - 1));
-    return generateTruth(a) + sample(signs) + generateTruth(b);
-}
-
 const generateTruth = (length: number): string => {
     if (length === 1) {
         return sample(numbersNoZero);
@@ -146,7 +117,7 @@ const generateTruth = (length: number): string => {
     let left = generateTruth(a);
     let right = generateTruth(b);
     let sign = sample(signs);
-    if(sign === "/" && (parseInt(left) % parseInt(right)) != 0) sign = sample(signsNoDiv);
+    if (sign === "/" && (parseInt(left) % parseInt(right)) != 0) sign = sample(signsNoDiv);
     return left + sign + right;
 }
 
@@ -236,7 +207,7 @@ client.on("messageCreate", (message: Message) => {
     if (content.toLowerCase() === "!!status" || content.toLowerCase() === "!!s") {
         let toSend = ""
 
-        if(status.currentWord != null) toSend += "Length: " + emojify(status.currentWord.length.toString()) + "   Result: " + emojify(eval(status.currentWord!).toString()) + "\n"
+        if (status.currentWord != null) toSend += "Length: " + emojify(status.currentWord.length.toString()) + "   Result: " + emojify(eval(status.currentWord!).toString()) + "\n"
 
         status.known.forEach((key, value) => {
             toSend += emojify(value)
@@ -244,11 +215,11 @@ client.on("messageCreate", (message: Message) => {
 
         toSend += "\n"
 
-        status.known.forEach((key, value) => {
+        status.known.forEach((key) => {
             toSend += key
         })
-        
-        if(toSend === "\n") toSend += "Create a new game!"
+
+        if (toSend === "\n") toSend += "Create a new game!"
 
         channel.send(toSend)
     }
@@ -260,7 +231,7 @@ ${status.history.map((entry) => `${guessToMosaic(entry.input, status.currentWord
 `)
     }
     if (content.toLowerCase().startsWith("!!guess") || content.toLowerCase().startsWith("!!g")) {
-        if (!status.currentWord || status.currentWord === null) {
+        if (!status.currentWord) {
             channel.send("There is no game currently running!");
             return
         }
@@ -287,32 +258,29 @@ ${status.history.map((entry) => `${guessToMosaic(entry.input, status.currentWord
         let prevWasSign = false;
         [...guess].forEach((Array) => {
             if (parseInt(Array) < 10 || parseInt(Array) > -1) hasNumbers = true;
-            
+
         });
 
         [...guess].forEach((Array) => {
-            if(Array === "/" || Array === "x" || Array === "*"|| Array === "+"|| Array === "-"){
+            if (Array === "/" || Array === "x" || Array === "*" || Array === "+" || Array === "-") {
                 console.log(Array);
-                
-                if(!prevWasSign) prevWasSign = true;
+
+                if (!prevWasSign) prevWasSign = true;
                 else {
                     channel.send("Invalid guess!")
                     return
                 }
-            }
-            else prevWasSign = false
-            
+            } else prevWasSign = false
+
         });
 
 
-        
-        if(hasNumbers) {
+        if (hasNumbers) {
             if (math.evaluate(guess) !== math.evaluate(status.currentWord!)) {
                 channel.send(`This does not equal ${eval(status.currentWord!)}!`)
                 return;
             }
-        }
-        else {
+        } else {
             channel.send("Guess has to have numbers in it!")
             return
         }
@@ -321,7 +289,7 @@ ${status.history.map((entry) => `${guessToMosaic(entry.input, status.currentWord
         if (guessSanitized === status.currentWord) {
             status.guesses += 1;
             status.history.push({input: guessSanitized, user: message.author})
-            
+
             channel.send(`
 ${emojify(guess)}
 ${guessToMosaic(guess, status.currentWord!)}`)
