@@ -9,11 +9,13 @@ import handleGuess from "./commands/handleGuess";
 import handleReset from "./commands/handleReset";
 import handleStatus from "./commands/handleStatus";
 import handleHistory from "./commands/handleHistory";
+import handleHelp from "./commands/handleHelp";
 
 const client = new Client({intents: [Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILDS]});
 
 client.once('ready', () => {
     console.log('Ready!');
+    client.user?.setActivity("!!commands")
 });
 
 client.on("messageCreate", (message: Message) => {
@@ -29,6 +31,9 @@ client.on("messageCreate", (message: Message) => {
     }
     if (content.toLowerCase() === "!!history" || content.toLowerCase() === "!!h") {
         handleHistory(channel);
+    }
+    if (content.toLowerCase() === "!!commands" || content.toLowerCase() === "!!c") {
+        handleHelp(channel);
     }
     if (content.toLowerCase().startsWith("!!guess") || content.toLowerCase().startsWith("!!g")) {
         handleGuess(channel, content, message);

@@ -21,6 +21,11 @@ function handleGuess(channel: NewsChannel | TextChannel | ThreadChannel | DMChan
     }
     guess = guess.replaceAll("x", "*").replaceAll(":", "/");
 
+    if(getState().won != null) {
+        channel.send(`${getState().won} already won this game, use !!new to create a new one`);
+        return;
+    }
+
     if (!guess.match(/^[-0-9*+ x/]+$/)) {
         channel.send("Invalid characters in guess!")
         return;
@@ -33,32 +38,38 @@ function handleGuess(channel: NewsChannel | TextChannel | ThreadChannel | DMChan
         channel.send(`Guess is too short, the answer has ${currentWord.length} symbols!`)
         return;
     }
+
     let hasNumbers = false
     let prevWasSign = false;
-    [...guess].forEach((Array) => {
-        if (parseInt(Array) < 10 || parseInt(Array) > -1) hasNumbers = true;
+    let invalidGuess = false;
+    [...guess].forEach((array) => {
+        if (parseInt(array) < 10 || parseInt(array) > -1) hasNumbers = true;
 
     });
 
     [...guess].forEach((array) => {
         if (array === "/" || array === "x" || array === "*" || array === "+" || array === "-") {
-            console.log(array);
-
+            console.log(array, prevWasSign)
             if (!prevWasSign) prevWasSign = true;
             else {
-                channel.send("Invalid guess!")
-                return
+                invalidGuess = true
             }
         } else prevWasSign = false
 
     });
+
+    if(invalidGuess) {
+        channel.send("Invalid guess!")
+        return
+    }
 
     if (hasNumbers) {
         if (math.evaluate(guess) !== math.evaluate(currentWord)) {
             channel.send(`This does not equal ${eval(currentWord)}!`)
             return;
         }
-    } else {
+    } 
+    else {
         channel.send("Guess has to have numbers in it!")
         return
     }
@@ -70,16 +81,20 @@ function handleGuess(channel: NewsChannel | TextChannel | ThreadChannel | DMChan
 
         channel.send(`
 ${emojify(guess)}
-${guessToMosaic(guess, state)}`)
+${guessToMosaic(guess, state)}`);
+
+
+    const time = Math.floor(new Date().getTime() - (state.startTime?.getTime() || 0)) / 1000;
+    const minutes = Math.floor(time / 60);
+    const seconds = time - minutes * 60; 
 
         channel.send(`${message.author.username} guessed correctly!
-It took ${state.guesses} guesses and ${(Math.floor(new Date().getTime() - (state.startTime?.getTime() || 0)) / 1000)} seconds
-`)
+It took ${state.guesses} guesses for ${(minutes != 0) ? minutes + " minutes and " : ""}${math.round(seconds, 3)} seconds`)
         setState({
             currentWord: state.currentWord,
             guesses: state.guesses,
             history: state.history,
-            won: null,
+            won: message.author,
             startTime: null,
             known: new Map<string, string>()
         });
