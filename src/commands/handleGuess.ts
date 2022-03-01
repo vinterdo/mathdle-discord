@@ -49,7 +49,6 @@ function handleGuess(channel: NewsChannel | TextChannel | ThreadChannel | DMChan
 
     [...guess].forEach((array) => {
         if (array === "/" || array === "x" || array === "*" || array === "+" || array === "-") {
-            console.log(array, prevWasSign)
             if (!prevWasSign) prevWasSign = true;
             else {
                 invalidGuess = true
@@ -65,7 +64,7 @@ function handleGuess(channel: NewsChannel | TextChannel | ThreadChannel | DMChan
 
     if (hasNumbers) {
         if (math.evaluate(guess) !== math.evaluate(currentWord)) {
-            channel.send(`This does not equal ${eval(currentWord)}!`)
+            channel.send(`This does not equal ${math.evaluate(currentWord)}!`)
             return;
         }
     } 
@@ -88,7 +87,7 @@ ${guessToMosaic(guess, state)}`);
     const minutes = Math.floor(time / 60);
     const seconds = time - minutes * 60; 
 
-        channel.send(`${message.author.username} guessed correctly!
+        channel.send(`${message.author} guessed correctly!
 It took ${state.guesses} guesses for ${(minutes != 0) ? minutes + " minutes and " : ""}${math.round(seconds, 3)} seconds`)
         setState({
             currentWord: state.currentWord,

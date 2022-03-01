@@ -1,6 +1,11 @@
 import {DMChannel, NewsChannel, PartialDMChannel, TextChannel, ThreadChannel} from "discord.js";
 import botConfig from "../botConfig";
 import {getState, setState} from "../state";
+import {all, bignumber, create, e, evaluate, pow, random, randomInt, sqrt} from "mathjs";
+import { unwatchFile } from "fs";
+
+const config = {}
+const math = create(all, config)
 
 const sample = <T>(list: T[]) => {
     return list[Math.floor(Math.random() * list.length)];
@@ -17,19 +22,59 @@ const variants = (k: number) => {
     return result;
 }
 
+const divider = (n: number, l: number) => {
+    const dividers : number[]= [];
+    for (let index = 2; index < 10; index++) {
+        if(n % index === 0) {
+            dividers.push(index);
+        }
+    }
+    if(dividers.length === 0) return false
+    return dividers
+}
+
+
+const isSign = (n: string) => {
+    return n === "*" || n === "/" || n === "+" || n === "-"
+}
+
 const generateTruth = (length: number): string => {
-    if (length === 1) {
-        return sample(botConfig.characters.numbersNoZero);
+    let truth = ""
+    let left = length - 1
+    let last = ""
+    let toDivide = ""
+    toDivide = truth += sample(botConfig.characters.numbersNoZero)
+    console.clear()
+    while(left > 0){
+        last = truth.slice(-1)
+        console.log(`truth: ${truth}`)
+        if(isSign(last)) {
+            if(last === "/"){
+                
+                
+                const add = divider(evaluate(toDivide.slice(0, toDivide.length - 1)), 1)
+                console.log(`dividing ${toDivide.slice(0, toDivide.length - 1)} = ${evaluate(toDivide.slice(0, toDivide.length - 1))} by ${add}`)
+                if(add != false){
+                    truth += sample(add)
+                }
+                else {
+                    truth = truth.slice(0, truth.length - 1) + sample(botConfig.characters.signsNoDiv)
+                    toDivide = toDivide.slice(0, toDivide.length - 1)
+                }
+            }
+            else truth += sample(botConfig.characters.numbersNoZero)
+        }
+        else truth += sample(botConfig.characters.signs)
+
+        toDivide += truth.slice(-1)
+        if(truth.slice(-1) === "+" || truth.slice(-1) === "-") toDivide = ""
+        left--
+        console.log(`left: ${left}`);
+        
     }
-    if (length === 2) {
-        return sample(botConfig.characters.numbersNoZero) + sample(botConfig.characters.numbersAndZero);
-    }
-    const [a, b] = sample(variants(length - 1));
-    const left = generateTruth(a);
-    const right = generateTruth(b);
-    let sign = sample(botConfig.characters.signs);
-    if (sign === "/" && (parseInt(left) % parseInt(right)) != 0) sign = sample(botConfig.characters.signsNoDiv);
-    return left + sign + right;
+
+    console.log(truth)
+    return truth
 }
 
 function handleNew(channel: NewsChannel | TextChannel | ThreadChannel | DMChannel | PartialDMChannel, content: string) {
@@ -61,7 +106,7 @@ function handleNew(channel: NewsChannel | TextChannel | ThreadChannel | DMChanne
         startTime: new Date(),
         known: new Map<string, string>()
     });
-    channel.send(`New game started! Expected result is ${eval(newTruth)}`);
+    channel.send(`New game started! Expected result is ${evaluate(newTruth)}`);
 }
 
 

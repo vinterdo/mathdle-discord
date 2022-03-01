@@ -1,8 +1,9 @@
 const signsNoDiv = ["+", "-", "*"];
 const signs = [...signsNoDiv, "/"];
-const numbersNoZero = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
-const numbersAndZero = [...numbersNoZero, "0"];
-const allPossible = [...numbersAndZero, ...signs];
+const numberNoZeroOne = ["2", "3", "4", "5", "6", "7", "8", "9"]
+const numbersNoZero = ["1", ...numberNoZeroOne];
+const numbersAll = [...numbersNoZero, "0"];
+const allPossible = [...numbersAll, ...signs];
 
 const green = "🟩";
 const yellow = "🟨";
@@ -13,8 +14,9 @@ const botConfig = {
     characters: {
         signsNoDiv,
         signs,
+        numbersAll,
         numbersNoZero,
-        numbersAndZero,
+        numberNoZeroOne,
         allPossible
     },
     emoji: {
